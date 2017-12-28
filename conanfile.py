@@ -17,15 +17,15 @@ class BoostGenerator(ConanFile):
     url = "https://github.com/bincrafters/conan-boost-generator"
     description = "Conan build generator for boost libraries http://www.boost.org/doc/libs/1_65_1/libs/libraries.htm"
     license = "BSL"
-    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam", "boostgenerator.py"
+    exports = "boostcpp.jam", "jamroot.template", "project-config.template.jam", "boost_conan_methods.py"
     requires = "Boost.Build/1.65.1@bincrafters/testing"
 
     def build(self):
         pass
-
+    
     def package(self):
-        self.copy("boostgenerator.py")
-
+        self.copy("boost_conan_methods.py")
+        
     def package_info(self):
         self.cpp_info.includedirs = []
         self.cpp_info.libdirs = []
@@ -44,14 +44,11 @@ class boost(Generator):
 
     @property
     def content(self):
-        # print("@@@@@@@@ BoostGenerator:boost.content: " + str(self.conanfile))
         try:
             jam_include_paths = ' '.join('"' + path + '"' for path in self.conanfile.deps_cpp_info.includedirs).replace('\\', '/')
          
             libraries_to_build = " ".join(self.conanfile.lib_short_names)
             
-            gen_script_content = self.get_boostgenerator_py()
-
             jamroot_content = self.get_template_content() \
                 .replace("{{{toolset}}}", self.b2_toolset) \
                 .replace("{{{libraries}}}", libraries_to_build) \
@@ -78,22 +75,14 @@ class boost(Generator):
                 "jamroot" : jamroot_content,
                 "boostcpp.jam" : self.get_boostcpp_content(),
                 "project-config.jam" : self.get_project_config_content(),
-                "boostgenerator.py" : gen_script_content,
                 "short_path.cmd" : "@echo off\nECHO %~s1"
                 }
+
         except Exception as e:
             import traceback
             traceback.print_exc()
             raise e
             
-    def get_boostgenerator_py(self):
-        gen_script = "boostgenerator.py"
-        tools.download("https://github.com/bincrafters/conan-Boost-Generator/blob/{0}/{1}/{2}"
-            .format(self.conanfile.channel, self.conanfile.version, gen_script), 
-            gen_script
-        )
-        return tools.load(gen_script)
-
     def get_template_content(self):
         template_file_path = os.path.join(self.get_boost_generator_source_path(), "jamroot.template")
         template_content = load(template_file_path)
