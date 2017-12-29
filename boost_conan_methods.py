@@ -59,7 +59,6 @@ def source(conanfile):
             tools.get("{0}/{1}/archive/{2}.tar.gz"
                 .format(boostorg_github, lib_short_name, archive_name))
             os.rename(lib_short_name + "-" + archive_name, lib_short_name)
-        getattr(conanfile, "source_after", lambda:None)()
 
 def build(conanfile):
     # print(">>>>> conanfile.build: " + str(conanfile))
@@ -78,7 +77,6 @@ project.register-id /boost/{0} : $(__name__) ;""".format(lib_short_name))
             conanfile.run(conanfile.deps_user_info['Boost.Generator'].b2_command \
                 + " " + b2_options(conanfile, lib_short_name) \
                 + " %s-build" % (lib_short_name))
-    getattr(conanfile, "build_after", lambda:None)()
 
 def package(conanfile, *subdirs_to_package):
     # print(">>>>> conanfile.package: " + str(conanfile))
@@ -89,7 +87,6 @@ def package(conanfile, *subdirs_to_package):
         for subdir in subdirs_to_package:
             copydir = os.path.join(lib_short_name, subdir)
             conanfile.copy(pattern="*", dst=copydir, src=copydir)
-    getattr(conanfile, "package_after", lambda:None)()
 
 def package_info(conanfile):
     # print(">>>>> conanfile.package_info: " + str(conanfile))
@@ -116,4 +113,3 @@ def package_info(conanfile):
             include_dir = os.path.join(lib_short_name, "include")
             conanfile.cpp_info.includedirs.append(include_dir)
     conanfile.cpp_info.defines.append("BOOST_ALL_NO_LIB=1")
-    getattr(conanfile, "package_info_after", lambda:None)()
